@@ -1,4 +1,8 @@
-import sys
+# -*- coding: utf-8 -*-
+#
+
+import sys, os
+sys.path.append(os.path.realpath(os.path.dirname(__file__)))
 import ctypes
 from PyQt5.QtWidgets import QMainWindow, QAction, qApp, QApplication
 from PyQt5.QtGui import QIcon

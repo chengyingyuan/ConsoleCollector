@@ -44,10 +44,11 @@ class ChildReadThread(threading.Thread):
                 break
 
 class ConsoleProcessThread(threading.Thread):
-    def __init__(self, appName, cmdLine, curDirectory=None, newEnvironment=None):
+    def __init__(self, appName, cmdLine, curDirectory=None, newEnvironment=None, encoding=None):
         super(ConsoleProcessThread, self).__init__()
         self._appName = appName
         self._cmdLine = cmdLine
+        self._encoding = encoding
         self._curDirectory = curDirectory
         self._newEnvironment = newEnvironment
         
@@ -119,6 +120,8 @@ class ConsoleProcessThread(threading.Thread):
                 result += item
             except queue.Empty:
                 break
+        if result and self._encoding:
+            result = result.decode(self._encoding).encode('UTF-8')
         return result
     
     def putInput(self, msg):
