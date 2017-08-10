@@ -1,6 +1,7 @@
 src/__pycache__
 *.pyc
-.project
-.pydevproject
-.settings
+demo.ini
+/.project
+/.pydevproject
+/.settings
 
