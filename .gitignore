@@ -1,3 +1,6 @@
 src/__pycache__
 *.pyc
+.project
+.pydevproject
+.settings
 

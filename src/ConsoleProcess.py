@@ -1,3 +1,4 @@
+import os, sys
 import win32process
 import win32security
 import win32pipe
@@ -44,8 +45,9 @@ class ChildReadThread(threading.Thread):
                 break
 
 class ConsoleProcessThread(threading.Thread):
-    def __init__(self, appName, cmdLine, curDirectory=None, newEnvironment=None):
+    def __init__(self, appId, appName, cmdLine, curDirectory=None, newEnvironment=None):
         super(ConsoleProcessThread, self).__init__()
+        self._appId = appId
         self._appName = appName
         self._cmdLine = cmdLine
         self._curDirectory = curDirectory
@@ -65,6 +67,13 @@ class ConsoleProcessThread(threading.Thread):
 
         self._cease = False
         self._sleep = True
+        
+        if self._curDirectory is None:
+            self._curDirectory = os.getcwd()
+    
+    @property
+    def appId(self):
+        return self._appId
 
     @property
     def appName(self):
@@ -167,13 +176,25 @@ class ConsoleProcessThread(threading.Thread):
             msg = "WIN32API Error(GetExitCode): {}".format(str(ex))
             self.showMessage(logging.ERROR, msg)
         return None
+    
+    def sendSigKill(self):
+        sigfile = os.path.join(self._curDirectory, self._appId+"SIGKILL.sig")
+        if not os.path.exists(sigfile):
+            with open(sigfile, "w") as fp:
+                pass
 
     def termProcess(self):
         if not self.isProcessAlive():
             return True
-        try:
-            self.showMessage(logging.INFO, "Terminating process...")
-            win32process.TerminateProcess(self._childProcess, 0)
+        self.showMessage(logging.INFO, "Terminating process...")
+        self.sendSigKill()
+        time.sleep(0.5)
+        if self.isProcessAlive():
+            time.sleep(0.5)
+            try:
+                win32process.TerminateProcess(self._childProcess, 0)
+            except Exception as ex:
+                self.showMessage(logging.ERROR, "Failed terminating: {}".format(str(ex)))
             if self._readThread:
                 self.showMessage(logging.INFO, "Stopping ChildReadThread")
                 self.stopReadThread()
@@ -181,9 +202,7 @@ class ConsoleProcessThread(threading.Thread):
                 time.sleep(EVENT_INTERVAL)
             self._childProcess = None
             return True
-        except Exception as ex:
-            self.showMessage(logging.ERROR, "Failed terminating: {}".format(str(ex)))
-        return False
+        return True
     
     def startProcess(self):
         assert self._state==STOPPED or self._state==ERROR
@@ -230,18 +249,21 @@ class ConsoleProcessThread(threading.Thread):
     
     def killProcess(self):
         assert self._state==RUNNING
-        try:
-            self._state= KILLING
-            self.showMessage(logging.INFO, "Killing process, state => KILLING")
-            win32process.TerminateProcess(self._childProcess, 0)
-            self.stopReadThread()
-            return True
-        except Exception as ex:
-            msg = "WIN32API Error(TerminateProcess): {}".format(str(ex))
-            self.showMessage(logging.ERROR, msg)
-            self._state = ERROR
-            self.showMessage(logging.INFO, "Error killing, state => ERROR")
-        return False
+        self._state= KILLING
+        self.showMessage(logging.INFO, "Killing process, state => KILLING")
+        self.sendSigKill()
+        time.sleep(0.5)
+        if self.isProcessAlive():
+            time.sleep(0.5)
+            try:
+                win32process.TerminateProcess(self._childProcess, 0)
+            except Exception as ex:
+                msg = "WIN32API Error(TerminateProcess): {}".format(str(ex))
+                self.showMessage(logging.ERROR, msg)
+        else:
+            self._state = STOPPED
+        self.stopReadThread()
+        return True
     
     def checkStateStarting(self):
         result = self.isProcessAlive()

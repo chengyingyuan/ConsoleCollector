@@ -41,9 +41,10 @@ class MainWindow(QMainWindow):
         for secName in self._config.sectionNames:
             section = self._config.getSection(secName)
             cmdline = section['CMDLINE']
+            appname = self._config.get('APPNAME', secName)
             workdir = self._config.get('WORKDIR', secName)
             environ = self._config.getDict('ENVIRON', secName)
-            console = ConsoleProcessThread(secName, cmdline, workdir, environ)
+            console = ConsoleProcessThread(secName, appname, cmdline, workdir, environ)
             self._consoles.append(console)
             console.start()
     
@@ -126,7 +127,11 @@ class MainWindow(QMainWindow):
             if event.type() == QEvent.KeyRelease: # QKeyEvent
                 text = event.text() # event.key() without Shift/Control/Alt/Meta considered
                 console = self._consoles[tabIndex]
-                console.putInput(text.encode('UTF-8'))
+                try:
+                    tstr = text.encode('UTF-8')
+                    console.putInput(tstr)
+                except:
+                    pass
                 event.ignore()
                 return True # Filter the event out
             elif event.type() == QEvent.KeyPress:
@@ -159,7 +164,11 @@ class MainWindow(QMainWindow):
                 #cursor = textBrowser.textCursor()
                 #textBrowser.append(text.decode('UTF-8'))
                 textBrowser.setTextCursor(textCursor)
-                textBrowser.insertPlainText(text.decode('UTF-8'))
+                try:
+                    tstr = text.decode('UTF-8')
+                    textBrowser.insertPlainText(tstr)
+                except:
+                    pass
                 charCount = textBrowser.document().characterCount()
                 if charCount > maxCharCount:
                     text = textBrowser.toPlainText()
