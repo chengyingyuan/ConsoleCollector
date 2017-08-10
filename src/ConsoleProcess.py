@@ -45,11 +45,7 @@ class ChildReadThread(threading.Thread):
                 break
 
 class ConsoleProcessThread(threading.Thread):
-<<<<<<< HEAD
-    def __init__(self, appId, appName, cmdLine, curDirectory=None, newEnvironment=None):
-=======
-    def __init__(self, appName, cmdLine, curDirectory=None, newEnvironment=None, encoding=None):
->>>>>>> abf0f35918b7ec600721cb2b021f37adcf7a023d
+    def __init__(self, appId, appName, cmdLine, curDirectory=None, newEnvironment=None, encoding=None):
         super(ConsoleProcessThread, self).__init__()
         self._appId = appId
         self._appName = appName
