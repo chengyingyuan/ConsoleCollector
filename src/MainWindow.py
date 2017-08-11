@@ -45,7 +45,9 @@ class MainWindow(QMainWindow):
             workdir = self._config.get('WORKDIR', secName)
             environ = self._config.getDict('ENVIRON', secName)
             encoding = self._config.get('ENCODING', secName)
-            console = ConsoleProcessThread(secName, appname, cmdline, workdir, environ, encoding)
+            showwindow = self._config.getBool('SHOWWINDOW', secName)
+            console = ConsoleProcessThread(secName, appname, 
+                cmdline, workdir, environ, encoding, showwindow)
             self._consoles.append(console)
             console.start()
     

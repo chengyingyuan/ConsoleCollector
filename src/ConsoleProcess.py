@@ -45,7 +45,11 @@ class ChildReadThread(threading.Thread):
                 break
 
 class ConsoleProcessThread(threading.Thread):
-    def __init__(self, appId, appName, cmdLine, curDirectory=None, newEnvironment=None, encoding=None):
+    def __init__(self, appId, appName, cmdLine, 
+                 curDirectory=None, 
+                 newEnvironment=None, 
+                 encoding=None,
+                 showWindow=False):
         super(ConsoleProcessThread, self).__init__()
         self._appId = appId
         self._appName = appName
@@ -53,6 +57,7 @@ class ConsoleProcessThread(threading.Thread):
         self._encoding = encoding
         self._curDirectory = curDirectory
         self._newEnvironment = newEnvironment
+        self._showWindow = showWindow
         
         self._queuein = queue.Queue()
         self._queueout = queue.Queue()
@@ -227,6 +232,8 @@ class ConsoleProcessThread(threading.Thread):
             startupInfo.hStdOutput = self._childWrite
             startupInfo.hStdError = self._childWrite
             startupInfo.dwFlags = win32con.STARTF_USESTDHANDLES|win32con.STARTF_USESHOWWINDOW
+            if self._showWindow:
+                startupInfo.wShowWindow = win32con.SW_NORMAL
             dwCreationFlags = 0        
             self._childProcess, hThread,_dwProcessId,_dwThreadId = win32process.CreateProcess(
                 None,

@@ -80,6 +80,27 @@ class SmartConfig(object):
                 return self._freevars[key]
         return None
     
+    def getInt(self, key, secName=None, limit=False):
+        v = self.get(key, secName, limit)
+        if v is not None:
+            v = int(v)
+        return v
+
+    def getFloat(self, key, secName=None, limit=False):
+        v = self.get(key, secName, limit)
+        if v is not None:
+            v = float(v)
+        return v
+
+    def getBool(self, key, secName=None, limit=False):
+        v = self.get(key, secName, limit)
+        if v is not None:
+            v = v.lower()
+            if v == "true":
+                return True
+            return False
+        return v
+    
     def getDict(self, key, secName=None):
         cands = self.get(key, secName)
         if type(cands) != str:
